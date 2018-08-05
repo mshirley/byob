@@ -188,7 +188,7 @@ def exe(filename, icon=None, hidden=None):
     process = subprocess.Popen('{} -m PyInstaller {}'.format(sys.executable, fspec), 0, None, subprocess.PIPE, subprocess.PIPE, subprocess.PIPE, shell=True)
     while True:
         try:
-            line = process.stdout.readline().rstrip()
+            line = process.stderr.readline().rstrip()
         except: break
         if line: util.display(line, color='reset', style='dim')
         if 'EXE' in line and 'complete' in line: break
